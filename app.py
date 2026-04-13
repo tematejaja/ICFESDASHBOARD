@@ -162,7 +162,7 @@ else:
 years = sorted([y for y in df_base['Annio_PAA'].unique() if y != 0])
 sel_years = st.sidebar.multiselect("Vigencia", years, default=years)
 
-estados = sorted(df_base['CONTRATO_Estado'].unique())
+estados = sorted([str(e) for e in df_base['CONTRATO_Estado'].unique() if pd.notna(e) and str(e) != 'nan'])
 sel_estados = st.sidebar.multiselect("Estado del Contrato", estados, default=estados)
 
 df = df_base[
