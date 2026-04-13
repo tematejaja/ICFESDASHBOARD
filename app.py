@@ -148,6 +148,11 @@ area_stats_global = get_global_stats(df_all)
 # ================================================================
 # SIDEBAR
 # ================================================================
+try:
+    st.sidebar.image("icfes_logo.png", use_column_width=True)
+except Exception:
+    pass
+
 dependencias = sorted([area for area in df_all['CONTRATO_Area'].unique() if pd.notna(area) and area != 'No Registra'])
 opciones_dependencia = [OPCION_GLOBAL] + dependencias
 
@@ -321,15 +326,14 @@ with c_op2:
     
     if not top_prov.empty:
         top_prov['Tooltip_Val'] = top_prov['CONTRATO_Valor'].apply(fmt_cop)
-        path_root = px.Constant(area_seleccionada[:30] if area_seleccionada != OPCION_GLOBAL else "ICFES")
-        fig = px.treemap(top_prov, path=[path_root, 'CONTRATO_Nombre_Contratista'], 
+        fig = px.treemap(top_prov, path=['CONTRATO_Nombre_Contratista'], 
                          values='CONTRATO_Valor', color='CONTRATO_Valor',
                          color_continuous_scale=[COLORS['gris'], COLORS['azul']],
                          custom_data=['Tooltip_Val'])
                          
         fig.update_traces(
             hovertemplate="<b>%{label}</b><br>Asignado: %{customdata[0]}<extra></extra>",
-            textinfo="label+value"
+            texttemplate="<b>%{label}</b><br>%{customdata[0]}"
         )
         fig.update_layout(margin=dict(t=0, l=0, r=0, b=0), coloraxis_showscale=False)
         st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
