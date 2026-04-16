@@ -744,20 +744,20 @@ with tab_meta:
     
     st.markdown("**1.1 Desviación Presupuestal / Balance Neto (`KPI_Desviacion_Valor`)**")
     st.markdown("Mide la eficiencia en la planeación financiera contrastando el valor ejecutado contra lo presupuestado en el PAA.")
-    st.latex(r"	ext{Desviación} = 	ext{CONTRATO\_Valor} - 	ext{Valor\_Esperado\_PAA}")
+    st.latex(r"\text{Desviación} = \text{CONTRATO\_Valor} - \text{Valor\_Esperado\_PAA}")
     st.markdown("- **Si < 0:** Ahorro financiero (Contrato costó menos de lo planeado).")
     st.markdown("- **Si > 0:** Sobrecosto financiero (Contrato excedió la planeación inicial).")
     st.markdown("- **Fuente:** Cruce estricto validado por ID de proceso o justificación PAA.")
 
     st.markdown("**1.2 Crecimiento Contractual (`KPI_Crecimiento_Contractual`)**")
     st.markdown("Evalúa la ocurrencia de adiciones presupuestales sobre el monto inicial firmado.")
-    st.latex(r"	ext{Crecimiento} = \left( rac{	ext{CONTRATO\_Valor}}{	ext{CONTRATO\_Valor\_Inicial}} ight)")
+    st.latex(r"\text{Crecimiento} = \left( \frac{\text{CONTRATO\_Valor}}{\text{CONTRATO\_Valor\_Inicial}} \right)")
     st.markdown("- **Si = 1.0:** Ejecución exacta sin adiciones monetarias.")
     st.markdown("- **Si > 1.0:** El contrato sufrió adiciones (ej. 1.25 representa un incremento del 25% sobre la base).")
     
     st.markdown("**1.3 Desfase Contractual (Oportunidad) (`KPI_Dias_Desfase`)**")
     st.markdown("Audita el cumplimiento del calendario propuesto midiendo los días naturales de diferencia entre la estimación y la realidad.")
-    st.latex(r"	ext{Desfase (días)} = 	ext{Fecha\_Firma\_Contrato} - 	ext{Fecha\_Estimada\_PAA}")
+    st.latex(r"\text{Desfase (días)} = \text{Fecha\_Firma\_Contrato} - \text{Fecha\_Estimada\_PAA}")
     st.markdown("- **Si > 0:** Retraso administrativo (se firmó post-calendario).")
     st.markdown("- **Si ≤ 0:** Contratación oportuna (se firmó antes o durante la fecha límite proyectada).")
     st.markdown("---")
