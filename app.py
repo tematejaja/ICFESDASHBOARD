@@ -10,7 +10,7 @@ import os
 # ================================================================
 st.set_page_config(
     page_title="Radar ICFES — Dashboard Integral de Contratación",
-    page_icon="🏛️",
+    
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -245,18 +245,18 @@ logo_path = os.path.join(os.path.dirname(__file__), 'icfes_logo.png')
 if os.path.exists(logo_path):
     st.sidebar.image(logo_path, width=150)
 
-st.sidebar.markdown('<div class="sidebar-title">🔍 Filtros de Análisis</div>', unsafe_allow_html=True)
+st.sidebar.markdown('<div class="sidebar-title">Filtros de Análisis</div>', unsafe_allow_html=True)
 
 # Filtro de Año
 years = sorted([y for y in df_all['Annio_PAA'].unique() if y != 0 and pd.notna(y)])
-sel_years = st.sidebar.multiselect("📅 Vigencia", years, default=years)
+sel_years = st.sidebar.multiselect("Vigencia", years, default=years)
 
 # Filtro de Área — clave del rediseño
 # FIX 4: Excluir 'No Registra' del catálogo de áreas
 areas_disponibles = sorted([a for a in df_all['CONTRATO_Area'].unique() if a != 'No Registra'])
-TODAS = "🏛️ Todas las Áreas"
+TODAS = "Todas las Áreas"
 opcion_area = st.sidebar.selectbox(
-    "🏢 Área del ICFES",
+    "Área del ICFES",
     [TODAS] + areas_disponibles,
     index=0
 )
@@ -269,7 +269,7 @@ else:
 
 # Filtro de Estado
 estados = sorted(df_all['CONTRATO_Estado'].unique())
-sel_estados = st.sidebar.multiselect("📋 Estado", estados, default=estados)
+sel_estados = st.sidebar.multiselect("Estado", estados, default=estados)
 
 # Aplicar filtros
 df = df_all[
@@ -293,26 +293,26 @@ years_display = ", ".join(str(y) for y in sel_years) if sel_years else "Sin vige
 
 st.markdown(f"""
 <div class="dashboard-header">
-    <h1>🏛️ Radar ICFES — Contratación Integral</h1>
+    <h1>Radar ICFES — Contratación Integral</h1>
     <p>Dashboard de gestión contractual  ·  Base Cruzada Maestra Auditada  ·  {years_display}</p>
-    <div class="header-badge">📍 {area_display} · {len(df):,} contratos</div>
+    <div class="header-badge">{area_display} · {len(df):,} contratos</div>
 </div>
 """, unsafe_allow_html=True)
 
 # ── Guardia de datos vacíos ──
 if len(df) == 0:
-    st.warning("⚠️ **No hay registros** con los filtros seleccionados. Ajusta los filtros en la barra lateral.")
+    st.warning("**No hay registros** con los filtros seleccionados. Ajusta los filtros en la barra lateral.")
     st.stop()
 
 # ================================================================
 # ESTRUCTURA DE TABS (Limitar número de vistas simultáneas)
 # ================================================================
 tab_exec, tab_fin, tab_time, tab_contr, tab_meta = st.tabs([
-    "📊 Resumen Ejecutivo", 
-    "💰 Cumplimiento Financiero", 
-    "⏱️ Tiempos de Etapas", 
-    "👥 Perfil y Contratistas",
-    "📖 Metodología"
+    "Resumen Ejecutivo", 
+    "Cumplimiento Financiero", 
+    "Tiempos de Etapas", 
+    "Perfil y Contratistas",
+    "Metodología"
 ])
 
 # ================================================================
@@ -555,7 +555,7 @@ with tab_contr:
         matches = df[df['CONTRATO_Nombre_Contratista'].str.startswith(sel_nombre, na=False)]['CONTRATO_Nombre_Contratista'].unique()
         if len(matches) > 0:
             df_cont = df[df['CONTRATO_Nombre_Contratista'] == matches[0]]
-            st.markdown(f"**📋 Contratos de: {matches[0]}**")
+            st.markdown(f"**Contratos de: {matches[0]}**")
             st.dataframe(
                 df_cont[['Annio_PAA','CONTRATO_Referencia','CONTRATO_Area','CONTRATO_Objeto','CONTRATO_Valor','CONTRATO_Estado']].sort_values('CONTRATO_Valor', ascending=False),
                 use_container_width=True, hide_index=True
@@ -660,11 +660,11 @@ with tab_contr:
     exp_c1, exp_c2, exp_c3 = st.columns(3)
 
     with exp_c1:
-        buscar_contrato = st.text_input("🔎 Buscar contrato (referencia)", placeholder="Ej: ICFES-242")
+        buscar_contrato = st.text_input("Buscar contrato (referencia)", placeholder="Ej: ICFES-242")
     with exp_c2:
-        buscar_contratista = st.text_input("🔎 Buscar contratista", placeholder="Ej: Infotic")
+        buscar_contratista = st.text_input("Buscar contratista", placeholder="Ej: Infotic")
     with exp_c3:
-        rango_valor = st.selectbox("💰 Rango de valor", [
+        rango_valor = st.selectbox("Rango de valor", [
             "Todos", "Menor a $50M", "$50M - $500M", "$500M - $1,000M", "Mayor a $1,000M"
         ])
 
@@ -699,7 +699,7 @@ with tab_contr:
 
     # Detalle de contrato seleccionado
     st.markdown("---")
-    st.markdown("**📄 Detalle de contrato individual:**")
+    st.markdown("**Detalle de contrato individual:**")
     contratos_lista = df_explorador['CONTRATO_Referencia'].sort_values().unique()
     if len(contratos_lista) > 0:
         sel_contrato = st.selectbox("Seleccionar contrato", contratos_lista, index=0)
@@ -732,7 +732,7 @@ with tab_meta:
     # 09. METODOLOGÍA DE CÁLCULO Y DICCIONARIO
     # ================================================================
     st.markdown('''
-    <div class="section-header"><div class="section-number">ℹ️</div><h2>Metodología y Diccionario de Datos</h2></div>
+    <div class="section-header"><div class="section-number">#</div><h2>Metodología y Diccionario de Datos</h2></div>
     ''', unsafe_allow_html=True)
     
     st.markdown('''
@@ -740,7 +740,7 @@ with tab_meta:
     El rigor analítico evita inferencias asumiendo exclusivamente los cruces estandarizados entre las bases de SECOP II (Contratos) y el Plan Anual de Adquisiciones (PAA).
     ''')
     
-    st.markdown("### 🧮 1. Fórmulas de Cálculo de Indicadores (KPIs)")
+    st.markdown("### 1. Fórmulas de Cálculo de Indicadores (KPIs)")
     
     st.markdown("**1.1 Desviación Presupuestal / Balance Neto (`KPI_Desviacion_Valor`)**")
     st.markdown("Mide la eficiencia en la planeación financiera contrastando el valor ejecutado contra lo presupuestado en el PAA.")
@@ -762,7 +762,7 @@ with tab_meta:
     st.markdown("- **Si ≤ 0:** Contratación oportuna (se firmó antes o durante la fecha límite proyectada).")
     st.markdown("---")
 
-    st.markdown("### 📖 2. Diccionario de Datos Estandarizado")
+    st.markdown("### 2. Diccionario de Datos Estandarizado")
     
     diccionario_data = [
         {"Variable": "Annio_PAA", "Definición Estricta": "Vigencia fiscal oficial cruzada. Identifica a qué presupuesto temporal pertenece el recurso (2024 o 2025)."},
@@ -781,7 +781,7 @@ with tab_meta:
 # Descarga
 csv = df_explorador.to_csv(index=False, encoding='utf-8-sig')
 nombre_archivo = f"datos_icfes_{'global' if vista_global else opcion_area.replace(' ','_')[:30]}.csv"
-st.download_button(label="📥 Descargar datos filtrados (CSV)", data=csv,
+st.download_button(label="Descargar datos filtrados (CSV)", data=csv,
                    file_name=nombre_archivo, mime="text/csv")
 
 st.markdown('<div class="dashboard-footer">Radar ICFES · Dashboard Integral de Contratación · Base Cruzada Maestra Auditada · 2024–2025</div>', unsafe_allow_html=True)
