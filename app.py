@@ -373,11 +373,37 @@ def build_summary_chart(
 # ================================================================
 # DATOS
 # ================================================================
+AREA_CATALOG = {
+    "Dirección General",
+    "Dirección de Evaluación",
+    "Dirección de Producción y Operaciones",
+    "Dirección de Tecnología e Información",
+    "Oficina Asesora Jurídica",
+    "Oficina Asesora de Comunicaciones y Mercadeo",
+    "Oficina Asesora de Gestión de Proyectos de Investigación",
+    "Oficina Asesora de Planeación",
+    "Oficina de Control Interno",
+    "Secretaría General",
+    "Subdirección Financiera y Contable",
+    "Subdirección de Abastecimiento y Servicios Generales",
+    "Subdirección de Análisis y Divulgación",
+    "Subdirección de Aplicación de Instrumentos",
+    "Subdirección de Desarrollo de Aplicaciones",
+    "Subdirección de Diseño de Instrumentos",
+    "Subdirección de Estadísticas",
+    "Subdirección de Información",
+    "Subdirección de Producción de Instrumentos",
+    "Subdirección de Talento Humano",
+    "Unidad de Atención al Ciudadano",
+    "No Registra",
+}
+
 REQUIRED_COLUMNS = {
     "Annio_PAA",
     "CONTRATO_Referencia",
     "CONTRATO_Objeto",
     "CONTRATO_Area",
+    "CONTRATO_Area_Original",
     "CONTRATO_Estado",
     "CONTRATO_Fecha_Firma",
     "CONTRATO_Valor",
@@ -411,7 +437,8 @@ def cargar_datos():
         'KPI_Crecimiento_Contractual'
     ]
     cols_texto = [
-        'CONTRATO_Area', 'CONTRATO_Estado', 'CONTRATO_Referencia', 'CONTRATO_Objeto',
+        'CONTRATO_Area', 'CONTRATO_Area_Original', 'CONTRATO_Estado',
+        'CONTRATO_Referencia', 'CONTRATO_Objeto',
         'CONTRATO_Nombre_Contratista', 'CONTRATO_Naturaleza_Juridica', 'CONTRATO_Genero'
     ]
 
@@ -440,20 +467,17 @@ def cargar_datos():
     ].apply(normalize_legal_nature)
     df['CONTRATO_Genero'] = df['CONTRATO_Genero'].apply(normalize_gender)
 
-    df['CONTRATO_Area'] = df['CONTRATO_Area'].str.replace(r'\n', ' ', regex=True).str.strip()
+    for col in ['CONTRATO_Area', 'CONTRATO_Area_Original']:
+        df[col] = df[col].str.replace(r'\n', ' ', regex=True).str.replace(
+            r'\s+', ' ', regex=True
+        ).str.strip()
 
-    map_oficial = {
-        'Dirección de Tecnología e Información Dirección de Producción y Operaciones': 'Dirección de Tecnología e Información',
-        'Dirección de Tecnología e Información Oficina Asesora de Comunicaciones y Mercadeo Oficina Asesora de Planeación': 'Dirección de Tecnología e Información',
-        'Oficina Asesora de Comunicaciones y Mercadeo Oficina Asesora de Planeación': 'Oficina Asesora de Comunicaciones y Mercadeo',
-        'Oficina de Gestión de Proyectos de Investigación': 'Oficina Asesora de Gestión de Proyectos de Investigación',
-        'Secretaría Genera Subdirección de Información': 'Subdirección de Información',
-        'Secretaría General - Unidad de Atencion al Ciudadano': 'Unidad de Atención al Ciudadano',
-        'Subdirección de Aplicación de Instrumentos Dirección de Tecnología e Información': 'Subdirección de Aplicación de Instrumentos',
-        'Subdirección de Información Oficina Asesora de Planeación': 'Subdirección de Información',
-        'Subdirección de Información Secretaría General': 'Subdirección de Información'
-    }
-    df['CONTRATO_Area'] = df['CONTRATO_Area'].replace(map_oficial)
+    unknown_areas = sorted(set(df['CONTRATO_Area']) - AREA_CATALOG)
+    if unknown_areas:
+        raise ValueError(
+            "La base contiene áreas fuera del catálogo institucional: "
+            + ", ".join(unknown_areas)
+        )
 
     mask_fantasma = (
         (df['CONTRATO_Valor'].fillna(0) == 0) &
@@ -725,7 +749,7 @@ with tab_exec:
                 lambda value: f"{int(value):,}".replace(",", "."),
                 lambda value: f"{int(value):,} contratos".replace(",", "."),
             ),
-            use_container_width=True,
+            width="stretch",
             config={"displayModeBar": False},
         )
     with trend_col_2:
@@ -738,7 +762,7 @@ with tab_exec:
                 fmt_plotly_cop,
                 lambda value: f"${value:,.0f} COP",
             ),
-            use_container_width=True,
+            width="stretch",
             config={"displayModeBar": False},
         )
     with trend_col_3:
@@ -751,7 +775,7 @@ with tab_exec:
                 lambda value: f"{fmt_decimal_es(value, 1)} d",
                 lambda value: f"{fmt_decimal_es(value, 2)} días",
             ),
-            use_container_width=True,
+            width="stretch",
             config={"displayModeBar": False},
         )
 
@@ -791,7 +815,7 @@ with tab_exec:
                          labels={'Nombre_Corto':'', 'Valor_Total':'Valor Total ($COP)'})
             fig.update_layout(yaxis={'categoryorder':'total ascending'}, height=450)
             fig.update_traces(textposition='outside', hovertemplate='<b>Área:</b> %{y}<br><b>Valor Total:</b> %{text}<extra></extra>')
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
     
         with col_b:
             question("¿Qué áreas presentan mayor desfase promedio en días?")
@@ -808,7 +832,7 @@ with tab_exec:
                 },
                 height=450,
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
     
         # Tabla resumen de áreas
         question("Resumen estadístico por área — haz clic en las columnas para ordenar")
@@ -817,7 +841,7 @@ with tab_exec:
         area_display_df['Valor Contratado'] = area_display_df['Valor Contratado'].apply(fmt_cop)
         area_display_df['Presupuesto PAA'] = area_display_df['Presupuesto PAA'].apply(fmt_cop)
         area_display_df['Desfase Prom (d)'] = area_display_df['Desfase Prom (d)'].round(1)
-        st.dataframe(area_display_df, use_container_width=True, hide_index=True, height=400)
+        st.dataframe(area_display_df, width="stretch", hide_index=True, height=400)
 
         st.markdown("<br>", unsafe_allow_html=True)
 
@@ -845,7 +869,7 @@ with tab_fin:
                      labels={'Valor':'Pesos ($COP)', 'Annio_PAA':'Año'}, template=PLOTLY_TEMPLATE)
         fig.update_layout(xaxis_tickvals=years, legend=dict(orientation='h', y=-0.15), height=400)
         fig.update_yaxes(tickprefix='$', tickformat=',.0f')
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     with col2:
         question("¿Qué contratos superaron en mayor monto lo previsto en el PAA?")
@@ -860,7 +884,7 @@ with tab_fin:
                          labels={'KPI_Desviacion_Valor':'Monto sobre el PAA ($COP)', 'Nombre_Corto':''})
             fig.update_layout(yaxis={'categoryorder':'total ascending'}, height=400, clickmode='event+select')
             fig.update_traces(textposition='outside', hovertemplate='<b>Contrato:</b> %{y}<br><b>Monto sobre el PAA:</b> %{text}<extra></extra>')
-            evt = st.plotly_chart(fig, use_container_width=True, on_select="rerun", selection_mode="points")
+            evt = st.plotly_chart(fig, width="stretch", on_select="rerun", selection_mode="points")
             if evt and len(evt.selection["points"]) > 0:
                 sel_ref = evt.selection["points"][0]["y"]
                 info = df[df['CONTRATO_Referencia'] == sel_ref]
@@ -893,7 +917,7 @@ with tab_time:
                          color_discrete_map={'A tiempo': COLORS['verde'], 'Con retraso': COLORS['rojo']},
                          labels={'Annio_PAA': 'Año'}, template=PLOTLY_TEMPLATE)
             fig.update_layout(xaxis_tickvals=years, legend=dict(orientation='h', y=-0.15), height=380)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         else:
             st.info("No hay datos de desfase disponibles.")
 
@@ -912,7 +936,7 @@ with tab_time:
                           color_discrete_sequence=COLORS['palette'][:len(years)])
             fig.update_layout(xaxis={'categoryorder':'array', 'categoryarray':list(ml.values())},
                               legend=dict(orientation='h', y=-0.15), height=380)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         else:
             st.info("No hay datos de fecha de firma disponibles.")
 
@@ -939,7 +963,7 @@ with tab_contr:
                  labels={'Nombre':'', 'Valor_Total':'Valor Total ($COP)'})
     fig.update_layout(yaxis={'categoryorder':'total ascending'}, height=500, clickmode='event+select')
     fig.update_traces(textposition='outside', hovertemplate='<b>Contratista:</b> %{y}<br><b>Valor contratado:</b> %{text}<extra></extra>')
-    evt2 = st.plotly_chart(fig, use_container_width=True, on_select="rerun", selection_mode="points")
+    evt2 = st.plotly_chart(fig, width="stretch", on_select="rerun", selection_mode="points")
 
     if evt2 and len(evt2.selection["points"]) > 0:
         point = evt2.selection["points"][0]
@@ -955,7 +979,7 @@ with tab_contr:
             st.markdown(f"**Contratos de: {selected_contractor}**")
             st.dataframe(
                 df_cont[['Annio_PAA','CONTRATO_Referencia','CONTRATO_Area','CONTRATO_Objeto','CONTRATO_Valor','CONTRATO_Estado']].sort_values('CONTRATO_Valor', ascending=False),
-                use_container_width=True, hide_index=True
+                width="stretch", hide_index=True
             )
 
     # ================================================================
@@ -976,7 +1000,7 @@ with tab_contr:
                          template=PLOTLY_TEMPLATE)
             fig.update_traces(textposition='inside', textinfo='percent+label')
             fig.update_layout(height=350)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         else:
             st.info("No hay datos de naturaleza jurídica.")
 
@@ -991,7 +1015,7 @@ with tab_contr:
                          template=PLOTLY_TEMPLATE)
             fig.update_traces(textposition='inside', textinfo='percent+label')
             fig.update_layout(height=350)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         else:
             st.info("No hay datos de género.")
 
@@ -1022,7 +1046,7 @@ with tab_fin:
                          color_discrete_map={'Con adiciones': COLORS['rojo'], 'Sin crecimiento': COLORS['verde']},
                          labels={'Annio_PAA':'Año'}, template=PLOTLY_TEMPLATE)
             fig.update_layout(xaxis_tickvals=years, legend=dict(orientation='h', y=-0.15), height=380)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         else:
             st.info("No hay datos de crecimiento contractual.")
 
@@ -1042,7 +1066,7 @@ with tab_fin:
                              labels={'KPI_Crecimiento_Contractual':'Veces que creció', 'CONTRATO_Referencia':''})
                 fig.update_layout(yaxis={'categoryorder':'total ascending'}, height=420, margin=dict(r=180))
                 fig.update_traces(texttemplate='%{text}', textposition='outside', textfont_size=11, cliponaxis=False, hovertemplate='<b>Contrato:</b> %{y}<br><b>Aumento de:</b> %{text}<extra></extra>')
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
             else:
                 st.info("No hay contratos con adiciones en la selección actual.")
         else:
@@ -1095,7 +1119,7 @@ with tab_contr:
 
     st.dataframe(
         df_explorador[cols_available].sort_values('CONTRATO_Valor', ascending=False),
-        use_container_width=True, height=500, hide_index=True
+        width="stretch", height=500, hide_index=True
     )
 
     # Detalle de contrato seleccionado
@@ -1112,6 +1136,11 @@ with tab_contr:
                 st.markdown(f"**Referencia:** {d['CONTRATO_Referencia']}")
                 st.markdown(f"**Año:** {d['Annio_PAA']}")
                 st.markdown(f"**Área:** {d['CONTRATO_Area']}")
+                if d['CONTRATO_Area_Original'] != d['CONTRATO_Area']:
+                    st.markdown(
+                        f"**Área original en la fuente:** "
+                        f"{d['CONTRATO_Area_Original']}"
+                    )
                 st.markdown(f"**Estado:** {d['CONTRATO_Estado']}")
             with dc2:
                 st.markdown(f"**Valor Inicial:** {fmt_cop(d['CONTRATO_Valor_Inicial'])}")
@@ -1187,7 +1216,8 @@ with tab_meta:
     
     diccionario_data = [
         {"Variable": "Annio_PAA", "Definición Estricta": "Vigencia fiscal oficial identificada para el contrato o el PAA cruzado (2022 a 2026)."},
-        {"Variable": "CONTRATO_Area", "Definición Estricta": "Dependencia del ICFES asignada (homologada y purgada de variaciones ortográficas de SECOP)."},
+        {"Variable": "CONTRATO_Area", "Definición Estricta": "Dependencia del catálogo institucional unificado usada en filtros e indicadores."},
+        {"Variable": "CONTRATO_Area_Original", "Definición Estricta": "Texto literal de la dependencia en la fuente contractual, conservado para trazabilidad y visible en el detalle cuando difiere del área unificada."},
         {"Variable": "CONTRATO_Valor", "Definición Estricta": "El valor monetario TOTAL FINAL del contrato, incluyendo adiciones (si las hubo). Es el número de facturación real."},
         {"Variable": "CONTRATO_Valor_Inicial", "Definición Estricta": "El valor oficial por el cual se sancionó y firmó el contrato en su primer día (sin adiciones)."},
         {"Variable": "Valor_Esperado_PAA", "Definición Estricta": "Tope presupuestal inmovilizado por planeación para llevar a cabo el proceso de la necesidad."},
@@ -1196,7 +1226,7 @@ with tab_meta:
         {"Variable": "CONTRATO_Naturaleza_Juridica", "Definición Estricta": "Tipo de contratista homologado como Persona natural, Persona jurídica o No registra."}
     ]
 
-    st.dataframe(pd.DataFrame(diccionario_data), use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame(diccionario_data), width="stretch", hide_index=True)
     st.markdown("<br>", unsafe_allow_html=True)
 
 # Descarga
